@@ -2,6 +2,7 @@
 
 module Assignment4 where
   import Network.HTTP.Client
+  import qualified Data.ByteString.Lazy.Internal as B
 
   startsWith :: Eq a => [a] -> [a] -> Bool
   startsWith [] _ = True
@@ -26,9 +27,13 @@ module Assignment4 where
     response <- httpLbs request manager
 
     let body = responseBody response
-    print "Hi"
-    -- print :t body
+    
 
-    -- print $ case getSubStringIndex "<html>" "<html>dsfslkfjfl" of
-    --   Nothing  -> "Damn, didn't find."
-    --   Just result -> show result
+  startOn url = do
+    manager <- newManager defaultManagerSettings
+
+    request <- parseUrl url
+    response <- httpLbs request manager
+
+    let body = responseBody response
+    print body
