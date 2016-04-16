@@ -16,19 +16,20 @@ module Assignment4 where
   import Data.Map (Map)
   import qualified Data.Map as Map
 
-  crawl :: String -> IO()
-  crawl url = do
+  crawl :: String -> Integer -> IO()
+  crawl url maxFollow = do
     manager <- newManager defaultManagerSettings
 
     request <- parseUrl url
     response <- httpLbs request manager
 
-    parseHTML (show (responseBody response)) url
+    parseHTML (show (responseBody response)) url maxFollow
 
-  parseHTML :: String -> String -> IO()
-  parseHTML body url = do
+  parseHTML :: String -> String -> Integer -> IO()
+  parseHTML body url maxFollow = do
     let tags = concat(Prelude.map extractTags $ splitOn ">" body)
-    let links = concat(Prelude.map extractTags $ splitOn "/a>" body)
+    let links = concat(Prelude.map extractLinks $ splitOn "/a>" body)
+
 
     -- Get a list with one of each tag type
     let tagsFound = Data.List.nub tags
@@ -38,6 +39,16 @@ module Assignment4 where
     putStrLn ("-------------------------------")
 
     printTagCounts tagsFound body
+    follow links maxFollow maxFollow
+
+  follow :: [String] -> Integer -> Integer -> IO()
+  follow (link:links) counter maxFollow = do
+    putStrLn link
+    crawl link maxFollow
+    follow links (counter - 1) maxFollow
+  follow _ 0 _ = print ""
+  follow [] _ _ = print ""
+
 
   printTagCounts :: [String] -> String -> IO()
   printTagCounts (tag:tags) html = do
@@ -59,17 +70,16 @@ module Assignment4 where
 
   extractLinks :: String -> [String]
   extractLinks text = do
-    let (_, link, content) = text =~ "href=\"(http://[^\"]*)\"" :: (String, String, String)
-
+    let (_, link, content) = text =~ "(http://[^\"]*)" :: (String, String, String)
     if not (link == "" && content == "")
       then do
-        Prelude.map last (text =~ "href=\"(http://[^\"]*)\"" :: [[String]])
+        Prelude.map last (text =~ "(http://[^\"]*)" :: [[String]])
       else []
 
   startOn :: String -> [String] -> IO()
   startOn url [] = case parseURI url of
     Nothing -> print "Invalid URL."
-    Just _ -> crawl url
+    Just _ -> crawl url 10
 
   main :: IO ()
   main = do
