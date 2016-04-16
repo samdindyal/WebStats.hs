@@ -6,6 +6,7 @@
 
 module Assignment4 where
   import Network.HTTP.Client
+  import Network.URI
 
   import Text.Regex.Posix
 
@@ -66,7 +67,9 @@ module Assignment4 where
       else []
 
   startOn :: String -> [String] -> IO()
-  startOn url [] = crawl url
+  startOn url [] = case parseURI url of
+    Nothing -> print "Invalid URL."
+    Just u -> crawl url
 
   main :: IO ()
   main = do
