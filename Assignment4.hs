@@ -69,7 +69,7 @@ module Assignment4 where
   startOn :: String -> [String] -> IO()
   startOn url [] = case parseURI url of
     Nothing -> print "Invalid URL."
-    Just u -> crawl url
+    Just _ -> crawl url
 
   main :: IO ()
   main = do
