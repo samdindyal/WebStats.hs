@@ -6,6 +6,7 @@
 
 module Assignment4 where
   import Network.HTTP.Client
+  import Network.HTTP.Types.Status (statusCode)
   import Network.URI
 
   import Text.Regex.Posix
@@ -18,12 +19,15 @@ module Assignment4 where
 
   crawl :: String -> Integer -> IO()
   crawl url maxFollow = do
+    putStrLn url
     manager <- newManager defaultManagerSettings
 
     request <- parseUrl url
     response <- httpLbs request manager
-
-    parseHTML (show (responseBody response)) url maxFollow
+    if ((show $ statusCode $ responseStatus response) <= (show 299))
+      then do
+        parseHTML (show (responseBody response)) url maxFollow
+      else print("")
 
   parseHTML :: String -> String -> Integer -> IO()
   parseHTML body url maxFollow = do
@@ -42,12 +46,12 @@ module Assignment4 where
     follow links maxFollow maxFollow
 
   follow :: [String] -> Integer -> Integer -> IO()
-  follow (link:links) counter maxFollow = do
-    putStrLn link
-    crawl link maxFollow
-    follow links (counter - 1) maxFollow
   follow _ 0 _ = print ""
   follow [] _ _ = print ""
+  follow (link:links) counter maxFollow = do
+    putStrLn (show counter)
+    crawl link maxFollow
+    follow links (counter - 1) maxFollow
 
 
   printTagCounts :: [String] -> String -> IO()
@@ -79,7 +83,7 @@ module Assignment4 where
   startOn :: String -> [String] -> IO()
   startOn url [] = case parseURI url of
     Nothing -> print "Invalid URL."
-    Just _ -> crawl url 10
+    Just _ -> crawl url 3
 
   main :: IO ()
   main = do
